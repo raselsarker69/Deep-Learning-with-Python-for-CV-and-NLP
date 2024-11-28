@@ -1,0 +1,11 @@
+TransactionID,CustomerID,Product,Category,Quantity,UnitPrice,TransactionDate
+1,101,Laptop,Electronics,2,1000,2023-01-01
+2,102,Smartphone,Electronics,3,800,2023-01-02
+3,103,Tablet,Electronics,1,400,2023-01-03
+4,104,Monitor,Electronics,5,300,2023-01-04
+5,105,Keyboard,Accessories,10,50,2023-01-05
+6,106,Mouse,Accessories,15,20,2023-01-06
+7,107,Headphones,Accessories,8,100,2023-01-07
+8,108,Printer,Electronics,2,200,2023-01-08
+9,109,Camera,Electronics,1,500,2023-01-09
+10,110,Router,Networking,4,150,2023-01-10

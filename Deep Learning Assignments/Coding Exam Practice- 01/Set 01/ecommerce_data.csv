@@ -1,0 +1,11 @@
+OrderID,CustomerID,ProductID,Category,Quantity,UnitPrice,OrderDate
+101,1,201,Electronics,2,1000,2022-01-01
+102,2,202,Clothing,3,50,2022-02-01
+103,3,203,Electronics,1,1500,2022-03-01
+104,1,201,Clothing,5,60,2022-04-01
+105,2,202,Furniture,2,200,2022-05-01
+106,3,203,Furniture,4,250,2022-06-01
+107,1,201,Electronics,3,1000,2022-07-01
+108,2,202,Clothing,2,50,2022-08-01
+109,3,203,Furniture,1,200,2022-09-01
+110,4,204,Electronics,6,1500,2022-10-01

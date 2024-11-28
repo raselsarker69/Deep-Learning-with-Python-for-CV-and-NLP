@@ -1,0 +1,11 @@
+EmployeeID,Date,Status,Department
+1,2023-01-01,Present,HR
+2,2023-01-02,Absent,IT
+3,2023-01-03,Present,Finance
+4,2023-01-04,Present,IT
+5,2023-01-05,Absent,Marketing
+6,2023-01-06,Present,Finance
+7,2023-01-07,Absent,HR
+8,2023-01-08,Present,Marketing
+9,2023-01-09,Present,IT
+10,2023-01-10,Absent,HR

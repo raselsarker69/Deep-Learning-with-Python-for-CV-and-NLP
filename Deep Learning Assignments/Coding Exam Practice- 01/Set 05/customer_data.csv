@@ -1,0 +1,11 @@
+CustomerID,Name,Age,Gender,AnnualIncome,SpendingScore
+1,Alice,25,Female,50000,70
+2,Bob,34,Male,60000,65
+3,Charlie,29,Male,52000,50
+4,David,42,Male,72000,40
+5,Eva,37,Female,58000,85
+6,Frank,53,Male,80000,30
+7,Grace,48,Female,64000,60
+8,Hannah,31,Female,58000,75
+9,Ian,62,Male,90000,20
+10,Jackie,27,Female,54000,80
