@@ -1,0 +1,1388 @@
+**Markdown:**
+<img src="https://media.licdn.com/dms/image/v2/D5612AQGOui8XZUZJSA/article-cover_image-shrink_720_1280/article-cover_image-shrink_720_1280/0/1680532048475?e=2147483647&v=beta&t=5gZVHYNL2Vc2mK3iKrpK-FcpURIFdyaP4Vi38eeeZyM">
+
+**Markdown:**
+<img src="https://media.geeksforgeeks.org/wp-content/uploads/20240105124903/Mutliclass-Classification-vs-multilabel-classification-(1).png">
+
+**Markdown:**
+<h1> <center>Animal Classification Project:</center></h1>
+
+#### 1. **Define Project Goal**: Classify images into Cat, Dog, and Horse categories.  
+#### 2. **Setup Environment**: Install necessary libraries (TensorFlow, Keras, etc.) and organize project folders.  
+#### 3. **Load Dataset**: Download and inspect the dataset structure.  
+#### 4. **Preprocess Images**: Resize, normalize, and augment images to improve model generalization.  
+#### 5. **Split Dataset**: Separate images into train, validation, and test sets.  
+#### 6. **Design CNN Model**: Build a Convolutional Neural Network architecture for feature extraction and classification.  
+#### 7. **Compile Model**: Choose optimizer (Adam), loss function (categorical cross-entropy), and evaluation metrics (accuracy).  
+#### 8. **Train Model**: Fit the model using the training data and validate it using the validation set.  
+#### 9. **Evaluate Model**: Test the model on unseen data to calculate accuracy and other metrics.  
+#### 10. **Optimize Performance**: Adjust hyperparameters, use dropout, or fine-tune layers for better accuracy.  
+#### 11. **Save Model**: Save the trained model in HDF5 format for future use.  
+#### 12. **Build Prediction Pipeline**: Create a function to preprocess new images and make predictions.  
+#### 13. **Develop Deployment App**: Build a web app using Streamlit or Flask for users to upload and classify images.  
+#### 14. **Test Deployment**: Validate the app with various image inputs to ensure functionality.  
+#### 15. **Document & Present**: Prepare a report with project details, results, and upload code to a repository (e.g., GitHub).
+
+**Code:**
+import tensorflow as tf
+
+**Markdown:**
+# 1. **Define Project Goal**: Classify images into Cat, Dog, and Horse categories.  
+
+**Markdown:**
+1. **Input Representation:**
+   - Each input image is denoted as:
+     <img src="https://latex.codecogs.com/svg.image?&space;\mathbf{X}&space;\in&space;\mathbb{R}^{h&space;\times&space;w&space;\times&space;c}" title=" \mathbf{X} \in \mathbb{R}^{h \times w \times c}" />
+     - <img src="https://latex.codecogs.com/svg.image?&space;h" title=" h" />: Image height.
+     - <img src="https://latex.codecogs.com/svg.image?&space;w" title=" w" />: Image width.
+     - <img src="https://latex.codecogs.com/svg.image?&space;c" title=" c" />: Number of color channels (e.g., <img src="https://latex.codecogs.com/svg.image?&space;c&space;=&space;3" title=" c = 3" /> for RGB).
+
+---
+
+2. **Output Representation:**
+   - The output is a probability vector representing the likelihood of the image belonging to each of the three classes:
+     <img src="https://latex.codecogs.com/svg.image?&space;\mathbf{y}&space;=&space;\begin{bmatrix}&space;p(C_1)&space;\\&space;p(C_2)&space;\\&space;p(C_3)&space;\end{bmatrix}" title=" \mathbf{y} = \begin{bmatrix} p(C_1) \\ p(C_2) \\ p(C_3) \end{bmatrix}" />
+     - <img src="https://latex.codecogs.com/svg.image?&space;p(C_1)" title=" p(C_1)" />: Probability of the image being a Cat.
+     - <img src="https://latex.codecogs.com/svg.image?&space;p(C_2)" title=" p(C_2)" />: Probability of the image being a Dog.
+     - <img src="https://latex.codecogs.com/svg.image?&space;p(C_3)" title=" p(C_3)" />: Probability of the image being a Horse.
+   - These probabilities satisfy:
+     <img src="https://latex.codecogs.com/svg.image?&space;\sum_{i=1}^{3}&space;p(C_i)&space;=&space;1" title=" \sum_{i=1}^{3} p(C_i) = 1" />
+
+---
+
+3. **Classification Function:**
+   - We use a function <img src="https://latex.codecogs.com/svg.image?&space;f" title=" f" /> parameterized by model weights <img src="https://latex.codecogs.com/svg.image?&space;\Theta" title=" \Theta" /> to map input images to the output probabilities:
+     <img src="https://latex.codecogs.com/svg.image?&space;f(\mathbf{X};&space;\Theta)&space;=&space;\mathbf{y}" title=" f(\mathbf{X}; \Theta) = \mathbf{y}" />
+   - Here, <img src="https://latex.codecogs.com/svg.image?&space;\Theta" title=" \Theta" /> includes the weights and biases of the neural network.
+
+---
+
+4. **Prediction Rule:**
+   - The predicted class <img src="https://latex.codecogs.com/svg.image?&space;\hat{C}" title=" \hat{C}" /> is determined by selecting the class with the highest probability:
+     <img src="https://latex.codecogs.com/svg.image?&space;\hat{C}&space;=&space;\text{argmax}_{i}&space;\,p(C_i)" title=" \hat{C} = \text{argmax}_{i} \,p(C_i)" />
+
+---
+
+5. **Loss Function:**
+   - During training, we minimize the categorical cross-entropy loss:
+     <img src="https://latex.codecogs.com/svg.image?&space;L&space;=&space;-\frac{1}{N}\sum_{i=1}^{N}&space;\sum_{j=1}^{3}&space;y_{i,j}&space;\log&space;\hat{y}_{i,j}" title=" L = -\frac{1}{N}\sum_{i=1}^{N} \sum_{j=1}^{3} y_{i,j} \log \hat{y}_{i,j}" />
+     - <img src="https://latex.codecogs.com/svg.image?&space;N" title=" N" />: Number of training samples.
+     - <img src="https://latex.codecogs.com/svg.image?&space;y_{i,j}" title=" y_{i,j}" />: True label for sample <img src="https://latex.codecogs.com/svg.image?&space;i" title=" i" /> and class <img src="https://latex.codecogs.com/svg.image?&space;j" title=" j" /> (1 if true, 0 otherwise).
+     - <img src="https://latex.codecogs.com/svg.image?&space;\hat{y}_{i,j}" title=" \hat{y}_{i,j}" />: Predicted probability for sample <img src="https://latex.codecogs.com/svg.image?&space;i" title=" i" /> and class <img src="https://latex.codecogs.com/svg.image?&space;j" title=" j" />.
+
+
+**Markdown:**
+# 2. **Setup Environment**: Install necessary libraries (TensorFlow, Keras, etc.) and organize project folders.  
+
+**Markdown:**
+### **Setup Environment for Kaggle**
+
+If you’re working on Kaggle, the setup is streamlined as many libraries are pre-installed. Below are the steps to prepare your environment:
+
+---
+
+#### **1. Verify Pre-Installed Libraries**
+Kaggle already includes libraries like TensorFlow, Keras, NumPy, Matplotlib, and Pandas. To check their versions:
+```python
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+
+print("TensorFlow version:", tf.__version__)
+print("NumPy version:", np.__version__)
+print("Pandas version:", pd.__version__)
+```
+
+---
+
+#### **2. Install Additional Libraries (If Needed)**
+If specific libraries like `opencv-python`, `plotly`, or `streamlit` are required, use the Kaggle notebook’s terminal or code cells to install them:
+```python
+!pip install opencv-python plotly
+```
+
+For deployment tools like Streamlit, you can install it but deployment isn’t applicable directly in Kaggle.
+
+---
+
+#### **3. Organize Dataset**
+Kaggle datasets are available in the `/kaggle/input/` directory. Organize your dataset for training, validation, and testing:
+- Use a directory structure like this:
+  ```
+  /kaggle/input/dataset/
+  ├── train/
+  │   ├── cat/
+  │   ├── dog/
+  │   └── horse/
+  ├── val/
+  │   ├── cat/
+  │   ├── dog/
+  │   └── horse/
+  └── test/
+      ├── cat/
+      ├── dog/
+      └── horse/
+  ```
+- Use Kaggle’s file path for loading datasets:
+  ```python
+  train_dir = "/kaggle/input/dataset/train"
+  val_dir = "/kaggle/input/dataset/val"
+  test_dir = "/kaggle/input/dataset/test"
+  ```
+
+---
+
+#### **4. Prepare Folders for Outputs**
+Since you cannot create folders in Kaggle’s input directory, save outputs like models and results in `/kaggle/working/`:
+```bash
+/kaggle/working/
+├── models/       # For saving trained models
+├── results/      # For storing evaluation metrics or plots
+```
+
+Create folders in code if needed:
+```python
+import os
+
+os.makedirs("/kaggle/working/models", exist_ok=True)
+os.makedirs("/kaggle/working/results", exist_ok=True)
+```
+
+---
+
+#### **5. Use Kaggle GPU**
+Enable GPU in the Kaggle notebook for faster training:
+- Go to **Settings** -> **Accelerator** -> Select **GPU**.
+
+Verify GPU access:
+```python
+print("GPU Available:", tf.test.is_gpu_available())
+```
+
+---
+
+#### **6. Notebook Structure**
+Split your Kaggle notebook into the following sections:
+1. **Data Exploration**: Load and visualize the dataset.
+2. **Preprocessing**: Resize, normalize, and augment images.
+3. **Model Building**: Define the CNN architecture.
+4. **Training**: Train the model with TensorFlow/Keras.
+5. **Evaluation**: Test the model and visualize results.
+6. **Save Outputs**: Save the trained model and plots.
+
+
+
+**Code:**
+import os
+os.makedirs("/kaggle/working/models", exist_ok=True)
+
+**Markdown:**
+# 3. **Load Dataset**: Download and inspect the dataset structure.  
+
+**Markdown:**
+#### **1. Download the Dataset**
+- If the dataset is from Kaggle's Datasets section, add it to your notebook from the **Data** tab.
+- The dataset will appear in `/kaggle/input/`.
+
+**Markdown:**
+#### **2. Define Dataset Paths**
+Set the paths to the dataset directories:
+
+
+**Code:**
+train_dir = "/kaggle/input/animal/Dataset/train"
+val_dir = "/kaggle/input/animal/Dataset/val"
+test_dir = "/kaggle/input/animal/Dataset/test"
+
+# Define image dimensions and batch size
+IMG_HEIGHT, IMG_WIDTH = 224, 224
+BATCH_SIZE = 32
+
+**Markdown:**
+#### **3. Inspect Dataset Structure**
+List the dataset structure to ensure all files are correctly organized:
+
+**Code:**
+import os
+
+# List the directories
+print("Train Categories:", os.listdir(train_dir))
+print("Validation Categories:", os.listdir(val_dir))
+print("Test Categories:", os.listdir(test_dir))
+
+# Example: Inspect a specific category (e.g., 'cat')
+cat_train_samples = os.listdir(os.path.join(train_dir, "cat"))
+print(f"Number of cat images in training set: {len(cat_train_samples)}")
+dog_train_samples = os.listdir(os.path.join(train_dir, "dog"))
+print(f"Number of dog images in training set: {len(dog_train_samples)}")
+
+**Markdown:**
+#### **4. Count Images in Each Split**
+Create a helper function to count the number of images in each category:
+
+
+**Code:**
+import os
+
+# List the directories
+print("Train Categories:", os.listdir(train_dir))
+print("Validation Categories:", os.listdir(val_dir))
+print("Test Categories:", os.listdir(test_dir))
+
+# Example: Inspect a specific category (e.g., 'cat')
+cat_train_samples = os.listdir(os.path.join(train_dir, "cat"))
+print(f"Number of cat images in training set: {len(cat_train_samples)}")
+
+
+**Markdown:**
+#### **5. Visualize Sample Images**
+Plot a few sample images from each category:
+
+**Code:**
+def count_images_in_directory(directory):
+    categories = os.listdir(directory)
+    counts = {category: len(os.listdir(os.path.join(directory, category))) for category in categories}
+    return counts
+
+# Count images
+train_counts = count_images_in_directory(train_dir)
+val_counts = count_images_in_directory(val_dir)
+test_counts = count_images_in_directory(test_dir)
+
+print("Training Set Image Counts:", train_counts)
+print("Validation Set Image Counts:", val_counts)
+print("Test Set Image Counts:", test_counts)
+
+
+**Markdown:**
+#### **6. Check Image Dimensions**
+Ensure the images have consistent dimensions or resize them later:
+
+
+**Code:**
+# from PIL import Image
+# import matplotlib.pyplot as plt
+# directory = "/kaggle/input/animal/Dataset/train/cat/016646b99e465837f6ce07c5720ea256f15057f22f8b1fb686db51eafa3558c3437f970_1920.jpg"
+# img=  Image.open(directory)
+# img.size
+
+**Code:**
+from PIL import Image
+
+def inspect_image_dimensions(directory, category):
+    sample_image_path = os.path.join(directory, category, os.listdir(os.path.join(directory, category))[1])
+    print(sample_image_path)
+    with Image.open(sample_image_path) as img:
+        print(f"Sample image dimensions for {category}: {img.size}")
+
+inspect_image_dimensions(train_dir, "cat")
+inspect_image_dimensions(train_dir, "dog")
+inspect_image_dimensions(train_dir, "horse")
+
+
+**Markdown:**
+# 4. **Preprocess Images**: Resize, normalize, and augment images to improve model generalization.  
+
+**Markdown:**
+#### **1. Resize Images**
+- Each image is resized to a fixed dimension <img src="https://latex.codecogs.com/svg.image?&space;h&space;\times&space;w" title=" h \times w" />, ensuring consistency across the dataset:
+  <img src="https://latex.codecogs.com/svg.image?\mathbf{X}'&space;\in&space;\mathbb{R}^{h&space;\times&space;w&space;\times&space;c}" title=" \mathbf{X}' \in \mathbb{R}^{h \times w \times c}" />
+  Where:
+  - <img src="https://latex.codecogs.com/svg.image?&space;h" title=" h" />: Target height.
+  - <img src="https://latex.codecogs.com/svg.image?&space;w" title=" w" />: Target width.
+  - <img src="https://latex.codecogs.com/svg.image?&space;c" title=" c" />: Number of channels (e.g., 3 for RGB images).
+
+Resizing operation is mathematically defined as:
+  <img src="https://latex.codecogs.com/svg.image?\mathbf{X}'(i,j)&space;=&space;\mathbf{X}(\alpha&space;i,&space;\alpha&space;j)" title=" \mathbf{X}'(i,j) = \mathbf{X}(\alpha i, \alpha j)" />  
+  Where:
+  - <img src="https://latex.codecogs.com/svg.image?&space;\alpha&space;=&space;\frac{h_\text{orig}}{h}" title=" \alpha = \frac{h_\text{orig}}{h}" /> and <img src="https://latex.codecogs.com/svg.image?&space;\frac{w_\text{orig}}{w}" title=" \frac{w_\text{orig}}{w}" /> are scaling factors.
+  - <img src="https://latex.codecogs.com/svg.image?&space;(i,j)" title=" (i,j)" /> denotes pixel coordinates in the resized image.
+
+**Code:**
+import tensorflow as tf
+
+**Code:**
+def resize_image(image, target_size=(IMG_HEIGHT, IMG_WIDTH)):
+    return tf.image.resize(image, target_size)
+
+from PIL import Image
+import matplotlib.pyplot as plt
+directory = "/kaggle/input/animal/Dataset/train/cat/016646b99e465837f6ce07c5720ea256f15057f22f8b1fb686db51eafa3558c3437f970_1920.jpg"
+img=  Image.open(directory)
+print(img.size)
+
+resize_image(img, target_size = (3, 3))
+
+**Markdown:**
+#### **2. Normalize Pixel Values**
+- Normalize the pixel values of each image <img src="https://latex.codecogs.com/svg.image?\mathbf{X}" title=" \mathbf{X}" /> to scale between 0 and 1:
+  <img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{norm}&space;=&space;\frac{\mathbf{X}}{255}" title=" \mathbf{X}_\text{norm} = \frac{\mathbf{X}}{255}" />
+  Where:
+  - <img src="https://latex.codecogs.com/svg.image?&space;\mathbf{X}" title=" \mathbf{X}" />: Original pixel value (0 to 255).
+  - <img src="https://latex.codecogs.com/svg.image?&space;\mathbf{X}_\text{norm}" title=" \mathbf{X}_\text{norm}" />: Normalized pixel value (0 to 1).
+
+**Code:**
+def normalize_image(image):
+    return image / 255.0
+
+print("-----------")
+print(resize_image(img, target_size = (2, 2)))
+print("-----------")
+print(normalize_image(resize_image(img, target_size = (2, 2))))
+print("-----------")
+print(min(normalize_image(resize_image(img, target_size = (2, 2)))[1][0]))
+
+**Markdown:**
+#### **3. Standardize Images (Optional)**
+- If needed, standardize images to have zero mean and unit variance:
+  <img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{std}&space;=&space;\frac{\mathbf{X}_\text{norm}&space;-&space;\mu}{\sigma}" title=" \mathbf{X}_\text{std} = \frac{\mathbf{X}_\text{norm} - \mu}{\sigma}" />
+  Where:
+  - <img src="https://latex.codecogs.com/svg.image?&space;\mu" title=" \mu" />: Mean of pixel values.
+  - <img src="https://latex.codecogs.com/svg.image?&space;\sigma" title=" \sigma" />: Standard deviation of pixel values.
+
+**Code:**
+# Function to standardize an image
+def standardize_image(image):
+    mean, std = tf.math.reduce_mean(image), tf.math.reduce_std(image)
+    return (image - mean) / std
+
+# Example usage
+standardized_image = standardize_image(normalize_image(resize_image(img, target_size = (2, 2))))
+print("Standardized image mean:", tf.reduce_mean(standardized_image).numpy())
+print("Standardized image std:", tf.math.reduce_std(standardized_image).numpy())
+
+
+**Markdown:**
+#### **4. Augment Images**
+Augmentation introduces variability into the dataset by applying transformations. Mathematically:
+
+1. **Rotation:**
+   Rotate each image by an angle <img src="https://latex.codecogs.com/svg.image?\theta" title=" \theta" /> (e.g., random between <img src="https://latex.codecogs.com/svg.image?&space;[-30^\circ,&space;30^\circ]" title=" [-30^\circ, 30^\circ]" />):
+   <img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{rot}(x',&space;y')&space;=&space;\mathbf{X}(\cos\theta&space;x&space;-&space;\sin\theta&space;y,&space;\sin\theta&space;x&space;&plus;&space;\cos\theta&space;y)" title=" \mathbf{X}_\text{rot}(x', y') = \mathbf{X}(\cos\theta x - \sin\theta y, \sin\theta x + \cos\theta y)" />
+
+
+**Code:**
+def rotate_image(image, max_angle=180):
+    radians = tf.random.uniform([], -max_angle, max_angle) * (3.141592653589793 / 180.0)  # Convert to radians
+    print("Radients", radians)
+    print("---------------------")
+    return tf.image.rot90(image, tf.cast(radians / 1.5708, tf.int32))
+print("------------------")
+directory = "/kaggle/input/animal/Dataset/train/cat/016646b99e465837f6ce07c5720ea256f15057f22f8b1fb686db51eafa3558c3437f970_1920.jpg"
+img= plt.imread(directory)
+print("Image", img)
+print("------------------")
+
+image = rotate_image(img, max_angle = 360)
+print("New Image", image)
+plt.imshow(image)
+
+**Markdown:**
+2. **Scaling:**
+   Resize the image by a scale factor <img src="https://latex.codecogs.com/svg.image?s" title=" s" />:
+   <img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{scaled}(x',&space;y')&space;=&space;\mathbf{X}(s&space;x,&space;s&space;y)" title=" \mathbf{X}_\text{scaled}(x', y') = \mathbf{X}(s x, s y)" />
+
+**Code:**
+def scale_image(image, scale_range=(0.8, 1.2)):
+    scale_factor = tf.random.uniform([], scale_range[0], scale_range[1])
+    original_shape = tf.cast(tf.shape(image)[:2], tf.float32)
+    new_size = tf.cast(scale_factor * original_shape, tf.int32)
+    return tf.image.resize(image, new_size)
+
+**Markdown:**
+
+3. **Flipping:**
+   Horizontally flip the image:
+   <img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{flip}(x,&space;y)&space;=&space;\mathbf{X}(-x,&space;y)" title=" \mathbf{X}_\text{flip}(x, y) = \mathbf{X}(-x, y)" />
+
+
+**Code:**
+# # Flip the image horizontally
+# flipped_image = tf.image.flip_left_right(resize_image)
+
+**Markdown:**
+4. **Shearing:**
+   Apply shearing transformation:
+   <img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{shear}(x',&space;y')&space;=&space;\mathbf{X}(x&space;&plus;&space;\lambda&space;y,&space;y)" title=" \mathbf{X}_\text{shear}(x', y') = \mathbf{X}(x + \lambda y, y)" />
+   Where:
+   - <img src="https://latex.codecogs.com/svg.image?\lambda" title=" \lambda" />: Shear factor.
+
+
+**Code:**
+def shear_image(image, shear=0.2):
+    # Create the shear matrix
+    image_shape = tf.shape(image)
+    height, width = tf.cast(image_shape[0], tf.float32), tf.cast(image_shape[1], tf.float32)
+    shear_matrix = tf.convert_to_tensor([
+        [1.0, shear, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]
+    ], dtype=tf.float32)
+    inverse_shear_matrix = tf.linalg.inv(shear_matrix)
+
+    # Generate grid of pixel coordinates
+    x_coords, y_coords = tf.meshgrid(tf.range(width), tf.range(height))
+    ones = tf.ones_like(x_coords, dtype=tf.float32)
+    homogeneous_coords = tf.stack([tf.cast(x_coords, tf.float32), tf.cast(y_coords, tf.float32), ones], axis=-1)
+    homogeneous_coords = tf.reshape(homogeneous_coords, (-1, 3))
+    transformed_coords = tf.matmul(homogeneous_coords, tf.transpose(inverse_shear_matrix))
+    transformed_coords = tf.reshape(transformed_coords, (height, width, 3))
+
+    x_transformed = tf.clip_by_value(transformed_coords[..., 0], 0, width - 1)
+    y_transformed = tf.clip_by_value(transformed_coords[..., 1], 0, height - 1)
+    return tf.gather_nd(image, tf.stack([tf.cast(y_transformed, tf.int32), tf.cast(x_transformed, tf.int32)], axis=-1))
+
+
+**Code:**
+directory = "/kaggle/input/animal/Dataset/train/cat/016646b99e465837f6ce07c5720ea256f15057f22f8b1fb686db51eafa3558c3437f970_1920.jpg"
+img= plt.imread(directory)
+plt.imshow(img)
+#print("Image", img)
+print("------------------")
+
+**Code:**
+image = shear_image(img, shear=0.8)
+plt.imshow(image)
+
+**Markdown:**
+#### **5. Final Preprocessed Image**
+After applying all transformations, the preprocessed image can be denoted as:
+<img src="https://latex.codecogs.com/svg.image?\mathbf{X}_\text{final}&space;=&space;f_\text{aug}(\mathbf{X}_\text{std})" title=" \mathbf{X}_\text{final} = f_\text{aug}(\mathbf{X}_\text{std})" />
+Where:
+- <img src="https://latex.codecogs.com/svg.image?f_\text{aug}" title=" f_\text{aug}" /> represents the augmentation function.
+
+
+**Code:**
+# Preprocessing Pipeline
+def preprocess_image(image, label):
+    # Resize
+    image = resize_image(image)
+    # Normalize
+    image = normalize_image(image)
+    # Data Augmentation
+    if tf.random.uniform([]) > 0.5:
+        image = rotate_image(image)
+    if tf.random.uniform([]) > 0.5:
+        image = tf.image.flip_left_right(image)
+    return image, label
+
+# Load Dataset
+def load_dataset(data_dir):
+    return tf.keras.preprocessing.image_dataset_from_directory(
+        data_dir,
+        image_size=(IMG_HEIGHT, IMG_WIDTH),
+        batch_size=BATCH_SIZE
+    )
+
+# Load train, validation, and test datasets
+train_dataset = load_dataset(train_dir)
+val_dataset = load_dataset(val_dir)
+test_dataset = load_dataset(test_dir)
+
+# Apply preprocessing pipeline
+train_dataset = train_dataset.map(preprocess_image).shuffle(1000).prefetch(buffer_size=tf.data.AUTOTUNE)
+val_dataset = val_dataset.map(preprocess_image).prefetch(buffer_size=tf.data.AUTOTUNE)
+test_dataset = test_dataset.map(preprocess_image).prefetch(buffer_size=tf.data.AUTOTUNE)
+
+# Print Dataset Info
+print(f"Train Dataset: {train_dataset}")
+print(f"Validation Dataset: {val_dataset}")
+print(f"Test Dataset: {test_dataset}")
+
+**Markdown:**
+# 5. **Split Dataset**: Separate images into train, validation, and test sets.  
+
+**Markdown:**
+### **Mathematical Representation**
+
+1. **Dataset Size**:
+   - Let the total number of images in the dataset be denoted as:
+     <img src="https://latex.codecogs.com/svg.image?&space;N" title=" N" />
+
+2. **Splitting Ratios**:
+   - Define the proportions for each subset:
+     - Training set: <img src="https://latex.codecogs.com/svg.image?&space;r_\text{train}" title=" r_\text{train}" />
+     - Validation set: <img src="https://latex.codecogs.com/svg.image?&space;r_\text{val}" title=" r_\text{val}" />
+     - Test set: <img src="https://latex.codecogs.com/svg.image?&space;r_\text{test}" title=" r_\text{test}" />
+   - These ratios satisfy:
+     <img src="https://latex.codecogs.com/svg.image?&space;r_\text{train}&space;&plus;&space;r_\text{val}&space;&plus;&space;r_\text{test}&space;=&space;1" title=" r_\text{train} + r_\text{val} + r_\text{test} = 1" />
+
+3. **Number of Images in Each Subset**:
+   - Calculate the number of images for each subset:
+     - Training: <img src="https://latex.codecogs.com/svg.image?&space;N_\text{train}&space;=&space;r_\text{train}&space;\cdot&space;N" title=" N_\text{train} = r_\text{train} \cdot N" />
+     - Validation: <img src="https://latex.codecogs.com/svg.image?&space;N_\text{val}&space;=&space;r_\text{val}&space;\cdot&space;N" title=" N_\text{val} = r_\text{val} \cdot N" />
+     - Test: <img src="https://latex.codecogs.com/svg.image?&space;N_\text{test}&space;=&space;r_\text{test}&space;\cdot&space;N" title=" N_\text{test} = r_\text{test} \cdot N" />
+
+4. **Randomization**:
+   - Shuffle the dataset indices to ensure a random split.
+
+5. **Index Assignment**:
+   - Assign indices to each subset:
+     - Training indices: <img src="https://latex.codecogs.com/svg.image?&space;I_\text{train}&space;=&space;\{1,&space;\dots,&space;N_\text{train}\}" title=" I_\text{train} = \{1, \dots, N_\text{train}\}" />
+     - Validation indices: <img src="https://latex.codecogs.com/svg.image?&space;I_\text{val}&space;=&space;\{N_\text{train}&plus;1,&space;\dots,&space;N_\text{train}&plus;N_\text{val}\}" title=" I_\text{val} = \{N_\text{train}+1, \dots, N_\text{train}+N_\text{val}\}" />
+     - Test indices: <img src="https://latex.codecogs.com/svg.image?&space;I_\text{test}&space;=&space;\{N_\text{train}&plus;N_\text{val}&plus;1,&space;\dots,&space;N\}" title=" I_\text{test} = \{N_\text{train}+N_\text{val}+1, \dots, N\}" />
+
+**Code:**
+# import os
+# import shutil
+# import random
+
+# # Paths to the original dataset and target directories
+# original_dataset_dir = "/kaggle/input/animal/Dataset/"
+# train_dir = "Dataset_Split/train"
+# val_dir = "Dataset_Split/val"
+# test_dir = "Dataset_Split/test"
+
+# # Define split ratios
+# r_train, r_val, r_test = 0.7, 0.2, 0.1  # Train: 70%, Val: 20%, Test: 10%
+# assert r_train + r_val + r_test == 1, "The split ratios must sum to 1."
+
+# # Create directories for splits
+# for split_dir in [train_dir, val_dir, test_dir]:
+#     for category in ["cat", "dog", "horse"]:
+#         os.makedirs(os.path.join(split_dir, category), exist_ok=True)
+
+# # Function to split dataset
+# def split_dataset(original_dir, train_dir, val_dir, test_dir, r_train, r_val, r_test):
+#     for category in os.listdir(original_dir):
+#         category_path = os.path.join(original_dir, category)
+#         images = os.listdir(category_path)
+#         N = len(images)  # Total number of images
+
+#         # Shuffle image filenames
+#         random.shuffle(images)
+
+#         # Calculate split sizes
+#         N_train = int(r_train * N)
+#         N_val = int(r_val * N)
+#         N_test = N - N_train - N_val
+
+#         # Split images into train, val, test
+#         train_images = images[:N_train]
+#         val_images = images[N_train:N_train + N_val]
+#         test_images = images[N_train + N_val:]
+
+#         # Copy files to corresponding directories
+#         for img in train_images:
+#             shutil.copy(os.path.join(category_path, img), os.path.join(train_dir, category))
+#         for img in val_images:
+#             shutil.copy(os.path.join(category_path, img), os.path.join(val_dir, category))
+#         for img in test_images:
+#             shutil.copy(os.path.join(category_path, img), os.path.join(test_dir, category))
+
+# # Apply the function
+# split_dataset(original_dataset_dir, train_dir, val_dir, test_dir, r_train, r_val, r_test)
+
+# print("Dataset split complete.")
+
+
+**Markdown:**
+1. **Input Parameters**:
+   - The `original_dataset_dir` contains the original dataset structured by category.
+   - The `train_dir`, `val_dir`, and `test_dir` directories are created for storing the split datasets.
+
+2. **Randomization**:
+   - The `random.shuffle` function ensures images are randomly assigned to subsets.
+
+3. **Split Sizes**:
+   - The sizes of the splits are computed using the formulas:
+     - <img src="https://latex.codecogs.com/svg.image?&space;N_\text{train}&space;=&space;r_\text{train}&space;\cdot&space;N" title=" N_\text{train} = r_\text{train} \cdot N" />
+     - <img src="https://latex.codecogs.com/svg.image?&space;N_\text{val}&space;=&space;r_\text{val}&space;\cdot&space;N" title=" N_\text{val} = r_\text{val} \cdot N" />
+     - <img src="https://latex.codecogs.com/svg.image?&space;N_\text{test}&space;=&space;r_\text{test}&space;\cdot&space;N" title=" N_\text{test} = r_\text{test} \cdot N" />
+
+4. **File Copying**:
+   - Images are copied into their respective split directories using `shutil.copy`.
+
+5. **Output**:
+   - The dataset is split into `train`, `val`, and `test` directories, each containing subdirectories for categories (e.g., `cat`, `dog`, `horse`).
+
+**Markdown:**
+# 6. **Design CNN Model**: Build a Convolutional Neural Network architecture for feature extraction and classification.  
+
+**Markdown:**
+### **Mathematical Representation**
+
+#### **1. Input Image Tensor**
+Each input image is represented as a 3D tensor:
+<img src="https://latex.codecogs.com/svg.image?\mathbf{X}&space;\in&space;\mathbb{R}^{h&space;\times&space;w&space;\times&space;c}" title=" \mathbf{X} \in \mathbb{R}^{h \times w \times c}" />  
+Where:
+- <img src="https://latex.codecogs.com/svg.image?&space;h" title=" h" />: Image height (e.g., 224 pixels).
+- <img src="https://latex.codecogs.com/svg.image?&space;w" title=" w" />: Image width (e.g., 224 pixels).
+- <img src="https://latex.codecogs.com/svg.image?&space;c" title=" c" />: Number of channels (3 for RGB).
+
+---
+
+#### **2. Convolutional Layers**
+The convolutional layer applies a filter (kernel) <img src="https://latex.codecogs.com/svg.image?\mathbf{K}&space;\in&space;\mathbb{R}^{k&space;\times&space;k&space;\times&space;c}" title=" \mathbf{K} \in \mathbb{R}^{k \times k \times c}" /> to extract features:
+<img src="https://latex.codecogs.com/svg.image?&space;\mathbf{X}'(i,j)&space;=&space;\sum_{m=0}^{k-1}&space;\sum_{n=0}^{k-1}&space;\mathbf{X}(i&plus;m,&space;j&plus;n)&space;\cdot&space;\mathbf{K}(m,n)" title=" \mathbf{X}'(i,j) = \sum_{m=0}^{k-1} \sum_{n=0}^{k-1} \mathbf{X}(i+m, j+n) \cdot \mathbf{K}(m,n)" />  
+Where:
+- <img src="https://latex.codecogs.com/svg.image?k" title=" k" />: Kernel size.
+- <img src="https://latex.codecogs.com/svg.image?\mathbf{X}'" title=" \mathbf{X}'" />: Output feature map.
+
+---
+
+#### **3. Activation Function**
+ReLU (Rectified Linear Unit) is applied element-wise to introduce non-linearity:
+<img src="https://latex.codecogs.com/svg.image?f(x)&space;=&space;\max(0,&space;x)" title=" f(x) = \max(0, x)" />
+
+---
+
+#### **4. Pooling Layer**
+Pooling reduces the spatial dimensions of the feature map. For max pooling:
+<img src="https://latex.codecogs.com/svg.image?\mathbf{X}''(i,j)&space;=&space;\max_{m,n}&space;\mathbf{X}'(2i&plus;m,&space;2j&plus;n)" title=" \mathbf{X}''(i,j) = \max_{m,n} \mathbf{X}'(2i+m, 2j+n)" />
+
+---
+
+#### **5. Fully Connected Layer**
+The flattened feature map is passed through a dense layer:
+<img src="https://latex.codecogs.com/svg.image?z_k&space;=&space;\sum_{i=1}^{d}w_{k,i}x_i&space;&plus;&space;b_k" title=" z_k = \sum_{i=1}^{d}w_{k,i}x_i + b_k" />  
+Where:
+- <img src="https://latex.codecogs.com/svg.image?d" title=" d" />: Input dimension.
+- <img src="https://latex.codecogs.com/svg.image?w_{k,i}" title=" w_{k,i}" />: Weights.
+- <img src="https://latex.codecogs.com/svg.image?b_k" title=" b_k" />: Bias.
+
+---
+
+#### **6. SoftMax Output**
+The output probabilities for each class are computed using SoftMax:
+<img src="https://latex.codecogs.com/svg.image?p(C_k)&space;=&space;\frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" title=" p(C_k) = \frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" />  
+Where:
+- <img src="https://latex.codecogs.com/svg.image?p(C_k)" title=" p(C_k)" />: Probability of class <img src="https://latex.codecogs.com/svg.image?C_k" title=" C_k" />.
+
+
+**Code:**
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# Define the CNN architecture
+def build_cnn_model(input_shape=(224, 224, 3), num_classes=3):
+    model = models.Sequential()
+
+    # Convolutional Layer 1
+    model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
+    model.add(layers.MaxPooling2D((2, 2)))
+
+    # Convolutional Layer 2
+    model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+
+    # Convolutional Layer 3
+    model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(layers.MaxPooling2D((2, 2)))
+
+    # Flatten and Fully Connected Layer
+    model.add(layers.Flatten())
+    model.add(layers.Dense(128, activation='relu'))
+
+    # Output Layer
+    model.add(layers.Dense(num_classes, activation='softmax'))
+
+    return model
+
+# Build the model
+cnn_model = build_cnn_model()
+
+**Markdown:**
+1. **Input Layer**:
+   - Input shape is set to <img src="https://latex.codecogs.com/svg.image?224&space;\times&space;224&space;\times&space;3" title="224 \times 224 \times 3" /> (height, width, channels).
+
+2. **Convolutional Layers**:
+   - Three convolutional layers with increasing filter sizes (32, 64, 128) are used.
+   - Each convolutional layer is followed by max pooling to reduce dimensions.
+
+3. **Fully Connected Layers**:
+   - A dense layer with 128 neurons learns high-level features.
+   - The final layer has 3 neurons (one for each class: Cat, Dog, Horse) with a SoftMax activation function.
+
+
+**Markdown:**
+# 7. **Compile Model**: Choose optimizer (Adam), loss function (categorical cross-entropy), and evaluation metrics (accuracy).  
+
+**Code:**
+# Compile the model
+cnn_model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+
+# Display the model summary
+cnn_model.summary()
+
+**Markdown:**
+**Compilation**:
+   - Optimizer: Adam
+   - Loss: Sparse categorical crossentropy (used for integer labels)
+   - Metrics: Accuracy
+
+**Markdown:**
+# 8. **Train Model**: Fit the model using the training data and validate it using the validation set.  
+
+**Markdown:**
+### **Mathematical Representation**
+
+1. **Forward Pass**:
+   For each input image <img src="https://latex.codecogs.com/svg.image?\mathbf{X}" title=" \mathbf{X}" /> in the training set:
+   - Compute the output (logits) from the model:
+     <img src="https://latex.codecogs.com/svg.image?\mathbf{z}&space;=&space;f(\mathbf{X};&space;\Theta)" title=" \mathbf{z} = f(\mathbf{X}; \Theta)" />  
+     Where:
+     - <img src="https://latex.codecogs.com/svg.image?f(\mathbf{X};&space;\Theta)" title=" f(\mathbf{X}; \Theta)" />: Model function.
+     - <img src="https://latex.codecogs.com/svg.image?\Theta" title=" \Theta" />: Model parameters (weights and biases).
+
+   - Apply the SoftMax function to compute class probabilities:
+     <img src="https://latex.codecogs.com/svg.image?p(C_k|&space;\mathbf{X})&space;=&space;\frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" title=" p(C_k| \mathbf{X}) = \frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" />  
+     Where:
+     - <img src="https://latex.codecogs.com/svg.image?p(C_k|&space;\mathbf{X})" title=" p(C_k| \mathbf{X})" />: Probability of class <img src="https://latex.codecogs.com/svg.image?C_k" title=" C_k" />.
+
+
+
+2. **Loss Function**:
+   Use the categorical cross-entropy loss for multi-class classification:
+   <img src="https://latex.codecogs.com/svg.image?L&space;=&space;-\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{3}y_{i,k}&space;\cdot&space;\log&space;p(C_k|&space;\mathbf{X}_i)" title=" L = -\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{3}y_{i,k} \cdot \log p(C_k| \mathbf{X}_i)" />  
+   Where:
+   - <img src="https://latex.codecogs.com/svg.image?N" title=" N" />: Number of training samples.
+   - <img src="https://latex.codecogs.com/svg.image?y_{i,k}" title=" y_{i,k}" />: One-hot encoded label for the <img src="https://latex.codecogs.com/svg.image?i" title=" i" />-th sample and class <img src="https://latex.codecogs.com/svg.image?k" title=" k" />.
+
+---
+
+3. **Backpropagation**:
+   Gradients of the loss with respect to model parameters are computed:
+   <img src="https://latex.codecogs.com/svg.image?\frac{\partial&space;L}{\partial&space;\Theta}" title=" \frac{\partial L}{\partial \Theta}" />  
+   These gradients are used to update the parameters using an optimizer, such as Adam.
+
+---
+
+4. **Validation**:
+   During validation, calculate accuracy:
+   <img src="https://latex.codecogs.com/svg.image?\text{Accuracy}&space;=&space;\frac{\text{Number&space;of&space;Correct&space;Predictions}}{\text{Total&space;Number&space;of&space;Samples}}" title=" \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Samples}}" />
+
+**Code:**
+# Load Dataset
+def load_dataset(data_dir):
+    return tf.keras.preprocessing.image_dataset_from_directory(
+        data_dir,
+        image_size=(IMG_HEIGHT, IMG_WIDTH),
+        batch_size=BATCH_SIZE
+    )
+
+# Load train, validation, and test datasets
+train_dataset = load_dataset(train_dir)
+val_dataset = load_dataset(val_dir)
+test_dataset = load_dataset(test_dir)
+
+**Code:**
+import tensorflow as tf
+train_dataset = train_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+val_dataset = val_dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
+
+# Train the CNN model
+def train_model(model, train_dataset, val_dataset, epochs=10):
+    # Compile the model
+    model.compile(
+        optimizer='adam',
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    # Train the model
+    history = model.fit(
+        train_dataset,
+        validation_data=val_dataset,
+        epochs=epochs
+    )
+
+    return history
+
+# Call the function to train the model
+history = train_model(cnn_model, train_dataset, val_dataset, epochs=10)
+
+**Code:**
+import matplotlib.pyplot as plt
+
+def plot_training_history(history):
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Training and Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+plot_training_history(history)
+
+
+**Code:**
+def plot_accuracy_history(history):
+    plt.plot(history.history['accuracy'], label='Training Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Training and Validation Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.show()
+
+plot_accuracy_history(history)
+
+
+**Markdown:**
+
+1. **Training Process**:
+   - The model is trained on `train_dataset` and validated on `val_dataset`.
+   - Loss is computed using the categorical cross-entropy function:
+     <img src="https://latex.codecogs.com/svg.image?L&space;=&space;-\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{3}y_{i,k}&space;\cdot&space;\log&space;p(C_k|&space;\mathbf{X}_i)" title=" L = -\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{3}y_{i,k} \cdot \log p(C_k| \mathbf{X}_i)" />
+
+2. **Validation**:
+   - The model’s performance is evaluated after each epoch on the validation dataset using accuracy:
+     <img src="https://latex.codecogs.com/svg.image?\text{Accuracy}&space;=&space;\frac{\text{Number&space;of&space;Correct&space;Predictions}}{\text{Total&space;Number&space;of&space;Samples}}" title=" \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Samples}}" />
+
+3. **History Object**:
+   - The `history` object contains loss and accuracy metrics for both training and validation, which can be plotted for analysis.
+
+**Markdown:**
+# 9. **Evaluate Model**: Test the model on unseen data to calculate accuracy and other metrics.  
+
+**Markdown:**
+#### **1. Forward Pass for Predictions**
+For each test sample <img src="https://latex.codecogs.com/svg.image?\mathbf{X}" title=" \mathbf{X}" /> in the test dataset:
+- Compute the logits (model output before SoftMax):
+  <img src="https://latex.codecogs.com/svg.image?\mathbf{z}&space;=&space;f(\mathbf{X};&space;\Theta)" title=" \mathbf{z} = f(\mathbf{X}; \Theta)" />
+- Compute probabilities for each class using the SoftMax function:
+  <img src="https://latex.codecogs.com/svg.image?p(C_k|&space;\mathbf{X})&space;=&space;\frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" title=" p(C_k| \mathbf{X}) = \frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" />
+
+---
+
+#### **2. Predicted Class**
+The predicted class <img src="https://latex.codecogs.com/svg.image?\hat{C}" title=" \hat{C}" /> is determined by the class with the highest probability:
+<img src="https://latex.codecogs.com/svg.image?\hat{C}&space;=&space;\text{argmax}_{k}\,p(C_k|&space;\mathbf{X})" title=" \hat{C} = \text{argmax}_{k}\,p(C_k| \mathbf{X})" />
+
+---
+
+#### **3. Accuracy**
+Accuracy is calculated as the fraction of correctly predicted samples:
+<img src="https://latex.codecogs.com/svg.image?\text{Accuracy}&space;=&space;\frac{\sum_{i=1}^{N}\mathbb{1}(\hat{C}_i&space;=&space;C_i)}{N}" title=" \text{Accuracy} = \frac{\sum_{i=1}^{N}\mathbb{1}(\hat{C}_i = C_i)}{N}" />  
+Where:
+- <img src="https://latex.codecogs.com/svg.image?\mathbb{1}(\hat{C}_i&space;=&space;C_i)" title=" \mathbb{1}(\hat{C}_i = C_i)" /> is an indicator function that equals 1 if the predicted class <img src="https://latex.codecogs.com/svg.image?\hat{C}_i" title=" \hat{C}_i" /> matches the true class <img src="https://latex.codecogs.com/svg.image?C_i" title=" C_i" /> and 0 otherwise.
+- <img src="https://latex.codecogs.com/svg.image?N" title=" N" /> is the total number of test samples.
+
+---
+
+#### **4. Precision, Recall, and F1-Score**
+For a specific class <img src="https://latex.codecogs.com/svg.image?C_k" title=" C_k" />:
+- **Precision**:
+  <img src="https://latex.codecogs.com/svg.image?\text{Precision}&space;=&space;\frac{\text{True&space;Positives}}{\text{True&space;Positives}&space;&plus;&space;\text{False&space;Positives}}" title=" \text{Precision} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}" />
+- **Recall**:
+  <img src="https://latex.codecogs.com/svg.image?\text{Recall}&space;=&space;\frac{\text{True&space;Positives}}{\text{True&space;Positives}&space;&plus;&space;\text{False&space;Negatives}}" title=" \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}" />
+- **F1-Score**:
+  <img src="https://latex.codecogs.com/svg.image?\text{F1-Score}&space;=&space;\frac{2&space;\cdot&space;\text{Precision}&space;\cdot&space;\text{Recall}}{\text{Precision}&space;&plus;&space;\text{Recall}}" title=" \text{F1-Score} = \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}" />
+
+**Code:**
+from sklearn.metrics import classification_report, accuracy_score
+import numpy as np
+# Evaluate the model on the test dataset
+def evaluate_model(model, test_dataset):
+    # Get predictions and true labels
+    y_true = []
+    y_pred = []
+
+    for images, labels in test_dataset:
+        predictions = model.predict(images)  # Get probabilities
+        predicted_classes = np.argmax(predictions, axis=1)  # Get predicted class
+        y_true.extend(labels.numpy())
+        y_pred.extend(predicted_classes)
+
+    # Calculate accuracy
+    accuracy = accuracy_score(y_true, y_pred)
+    print(f"Accuracy: {accuracy:.2f}")
+
+    # Detailed metrics
+    report = classification_report(y_true, y_pred, target_names=['Cat', 'Dog', 'Horse'])
+    print("\nClassification Report:\n", report)
+
+# Call the function to evaluate the model
+evaluate_model(cnn_model, test_dataset)
+
+
+**Markdown:**
+1. **Predictions**:
+   - For each batch of images, the model computes class probabilities using the SoftMax function:
+     <img src="https://latex.codecogs.com/svg.image?p(C_k|&space;\mathbf{X})&space;=&space;\frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" title=" p(C_k| \mathbf{X}) = \frac{\exp(z_k)}{\sum_{j=1}^{3}\exp(z_j)}" />
+   - The predicted class <img src="https://latex.codecogs.com/svg.image?\hat{C}" title=" \hat{C}" /> is the one with the highest probability.
+
+2. **Metrics**:
+   - **Accuracy**:
+     <img src="https://latex.codecogs.com/svg.image?\text{Accuracy}&space;=&space;\frac{\sum_{i=1}^{N}\mathbb{1}(\hat{C}_i&space;=&space;C_i)}{N}" title=" \text{Accuracy} = \frac{\sum_{i=1}^{N}\mathbb{1}(\hat{C}_i = C_i)}{N}" />
+   - **Precision, Recall, F1-Score**:
+     Calculated using `classification_report`.
+
+3. **Output**:
+   - Overall accuracy.
+   - Per-class precision, recall, and F1-score.
+
+**Code:**
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+
+# Plot confusion matrix
+def plot_confusion_matrix(y_true, y_pred, class_names):
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.title('Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
+
+# Call the function to evaluate the model and plot the confusion matrix
+y_true, y_pred = evaluate_model(cnn_model, test_dataset)
+plot_confusion_matrix(y_true, y_pred, class_names=['Cat', 'Dog', 'Horse'])
+
+
+**Markdown:**
+# 10. **Optimize Performance**: Adjust hyperparameters, use dropout, or fine-tune layers for better accuracy.  
+
+**Markdown:**
+#### **1. Regularization with Dropout**
+Dropout helps prevent overfitting by randomly deactivating neurons during training:
+- For a neuron output <img src="https://latex.codecogs.com/svg.image?x_i" title=" x_i" />, apply dropout with probability <img src="https://latex.codecogs.com/svg.image?p_\text{drop}" title=" p_\text{drop}" />:
+  <img src="https://latex.codecogs.com/svg.image?\tilde{x}_i&space;=&space;\begin{cases}0,&space;&\text{with&space;probability}&space;p_\text{drop}\\&space;\frac{x_i}{1-p_\text{drop}},&space;&\text{otherwise}\end{cases}" title=" \tilde{x}_i = \begin{cases}0, & \text{with probability} p_\text{drop}\\ \frac{x_i}{1-p_\text{drop}}, & \text{otherwise}\end{cases}" />
+
+---
+
+#### **2. Learning Rate Adjustment**
+The learning rate <img src="https://latex.codecogs.com/svg.image?\eta" title=" \eta" /> controls the step size during gradient descent. Use a scheduler:
+- Initial learning rate: <img src="https://latex.codecogs.com/svg.image?\eta_0" title=" \eta_0" />
+- Decay factor: <img src="https://latex.codecogs.com/svg.image?\gamma" title=" \gamma" />
+- Updated learning rate at epoch <img src="https://latex.codecogs.com/svg.image?t" title=" t" />:
+  <img src="https://latex.codecogs.com/svg.image?\eta_t&space;=&space;\eta_0&space;\cdot&space;\gamma^t" title=" \eta_t = \eta_0 \cdot \gamma^t" />
+
+---
+
+#### **3. Transfer Learning**
+Fine-tune a pre-trained model by updating only the top layers:
+- For parameters <img src="https://latex.codecogs.com/svg.image?\Theta_\text{pre}" title=" \Theta_\text{pre}" /> from a pre-trained model, keep them fixed:
+  <img src="https://latex.codecogs.com/svg.image?\frac{\partial&space;L}{\partial&space;\Theta_\text{pre}}&space;=&space;0" title=" \frac{\partial L}{\partial \Theta_\text{pre}} = 0" />
+- Update only new parameters <img src="https://latex.codecogs.com/svg.image?\Theta_\text{new}" title=" \Theta_\text{new}" />:
+  <img src="https://latex.codecogs.com/svg.image?\Theta_\text{new}&space;\leftarrow&space;\Theta_\text{new}&space;-&space;\eta&space;\cdot&space;\frac{\partial&space;L}{\partial&space;\Theta_\text{new}}" title=" \Theta_\text{new} \leftarrow \Theta_\text{new} - \eta \cdot \frac{\partial L}{\partial \Theta_\text{new}}" />
+
+---
+
+#### **4. Batch Normalization**
+Batch normalization normalizes intermediate activations to improve training stability:
+- For a batch of activations <img src="https://latex.codecogs.com/svg.image?\mathbf{A}" title=" \mathbf{A}" />:
+  <img src="https://latex.codecogs.com/svg.image?\hat{\mathbf{A}}&space;=&space;\frac{\mathbf{A}-\mu}{\sigma}" title=" \hat{\mathbf{A}} = \frac{\mathbf{A}-\mu}{\sigma}" />  
+  Where:
+  - <img src="https://latex.codecogs.com/svg.image?\mu" title=" \mu" />: Batch mean.
+  - <img src="https://latex.codecogs.com/svg.image?\sigma" title=" \sigma" />: Batch standard deviation.
+
+**Markdown:**
+### 1. Adjust Hyperparameters
+Add dropout layers and adjust learning rate with a scheduler.
+
+**Code:**
+from tensorflow.keras.callbacks import LearningRateScheduler
+
+# Define a learning rate scheduler
+def lr_schedule(epoch, lr):
+    decay_rate = 0.9
+    return lr * decay_rate
+
+# Update CNN model with Dropout and Batch Normalization
+def build_optimized_cnn_model(input_shape=(224, 224, 3), num_classes=3):
+    model = tf.keras.models.Sequential()
+
+    # Convolutional Layer 1
+    model.add(tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Dropout(0.25))
+
+    # Convolutional Layer 2
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Dropout(0.25))
+
+    # Convolutional Layer 3
+    model.add(tf.keras.layers.Conv2D(128, (3, 3), activation='relu'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Dropout(0.25))
+
+    # Flatten and Fully Connected Layer
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(128, activation='relu'))
+    model.add(tf.keras.layers.Dropout(0.5))
+
+    # Output Layer
+    model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
+
+    return model
+
+# Build and compile the model
+optimized_cnn_model = build_optimized_cnn_model()
+optimized_cnn_model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+
+**Markdown:**
+### 2. Train with Learning Rate Scheduler
+
+**Code:**
+# Train the model with a learning rate scheduler
+lr_scheduler = LearningRateScheduler(lr_schedule)
+
+history = optimized_cnn_model.fit(
+    train_dataset,
+    validation_data=val_dataset,
+    epochs=20,
+    callbacks=[lr_scheduler]
+)
+
+
+**Markdown:**
+### 3. Transfer Learning
+Leverage a pre-trained model for improved performance:
+
+**Code:**
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Dropout, Flatten, GlobalAveragePooling2D
+
+# Load pre-trained MobileNetV2 model
+base_model = MobileNetV2(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+base_model.trainable = False  # Freeze base layers
+
+# Add custom layers for your dataset
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(0.5)(x)
+predictions = Dense(3, activation='softmax')(x)
+
+# Define the fine-tuned model
+transfer_learning_model = Model(inputs=base_model.input, outputs=predictions)
+
+# Compile the model
+transfer_learning_model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train the model
+history = transfer_learning_model.fit(
+    train_dataset,
+    validation_data=val_dataset,
+    epochs=10
+)
+
+
+**Markdown:**
+### Monitor Performance
+Plot Training and Validation Metrics
+
+**Code:**
+import matplotlib.pyplot as plt
+
+# Plot Training and Validation Accuracy
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.title('Training and Validation Accuracy')
+plt.show()
+
+
+**Markdown:**
+### **Improvements**
+
+1. **Dropout**:
+   - Regularizes the model to prevent overfitting:
+     <img src="https://latex.codecogs.com/svg.image?\tilde{x}_i&space;=&space;\begin{cases}0,&space;&\text{with&space;probability}&space;p_\text{drop}\\&space;\frac{x_i}{1-p_\text{drop}},&space;&\text{otherwise}\end{cases}" title=" \tilde{x}_i = \begin{cases}0, & \text{with probability} p_\text{drop}\\ \frac{x_i}{1-p_\text{drop}}, & \text{otherwise}\end{cases}" />
+
+2. **Learning Rate Adjustment**:
+   - Dynamically reduces learning rate for better convergence:
+     <img src="https://latex.codecogs.com/svg.image?\eta_t&space;=&space;\eta_0&space;\cdot&space;\gamma^t" title=" \eta_t = \eta_0 \cdot \gamma^t" />
+
+3. **Transfer Learning**:
+   - Leverages pre-trained knowledge while adapting to your dataset.
+
+**Markdown:**
+# 11. **Save Model**: Save the trained model in HDF5 format for future use.  
+
+**Markdown:**
+### **1. Save the Trained Model**
+
+You can save the trained model in HDF5 format using the `save` method:
+
+**Code:**
+# Save the trained model
+model_path = "optimized_cnn_model.h5"
+optimized_cnn_model.save(model_path)
+print(f"Model saved to {model_path}")
+
+
+**Markdown:**
+### **2. Load the Saved Model**
+
+Later, you can reload the model using `load_model`:
+
+**Code:**
+from tensorflow.keras.models import load_model
+
+# Load the saved model
+loaded_model = load_model(model_path)
+print("Model loaded successfully!")
+
+# Verify the model by displaying the architecture
+loaded_model.summary()
+
+
+**Markdown:**
+### **Why Use HDF5 Format?**
+
+1. **Portability**: The HDF5 format is widely supported and allows easy sharing across environments.
+2. **Metadata**: Saves both the model architecture and weights in a single file.
+3. **Future Use**: You can reload the model for further training or inference without redefining its architecture.
+
+**Markdown:**
+# 12. **Build Prediction Pipeline**: Create a function to preprocess new images and make predictions.  
+
+**Markdown:**
+### **Step 1: Preprocessing Function**
+
+Create a function to preprocess a single image before passing it to the model:
+
+**Code:**
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+
+def preprocess_image(image_path, target_size=(224, 224)):
+    """
+    Preprocesses an image for model prediction.
+
+    Args:
+        image_path (str): Path to the image file.
+        target_size (tuple): Target size for resizing the image (height, width).
+
+    Returns:
+        np.array: Preprocessed image ready for prediction.
+    """
+    # Load the image
+    image = load_img(image_path, target_size=target_size)
+    # Convert the image to an array
+    image_array = img_to_array(image)
+    # Normalize pixel values to [0, 1]
+    image_array = image_array / 255.0
+    # Add batch dimension
+    image_array = tf.expand_dims(image_array, axis=0)
+    return image_array
+
+
+**Markdown:**
+### **Step 2: Prediction Function**
+
+Create a function to predict the class of a new image:
+
+**Code:**
+def predict_image(image_path, model, class_names=['Cat', 'Dog', 'Horse']):
+    """
+    Predicts the class of a given image using the trained model.
+
+    Args:
+        image_path (str): Path to the image file.
+        model (tf.keras.Model): Trained model for prediction.
+        class_names (list): List of class names.
+
+    Returns:
+        str: Predicted class name.
+    """
+    # Preprocess the image
+    preprocessed_image = preprocess_image(image_path)
+    # Predict probabilities
+    predictions = model.predict(preprocessed_image)
+    # Get the predicted class index
+    predicted_class_index = tf.argmax(predictions[0]).numpy()
+    # Get the class name
+    predicted_class = class_names[predicted_class_index]
+    return predicted_class
+
+
+**Markdown:**
+### **Step 3: Example Usage**
+
+Load your trained model and make predictions on new images:
+
+**Code:**
+# Load the saved model
+model_path = "optimized_cnn_model.h5"
+loaded_model = tf.keras.models.load_model(model_path)
+
+# Predict a new image
+image_path = "/kaggle/input/animal/Dataset/test/horse/horse-arabs-stallion-ride-53114.jpeg"
+predicted_class = predict_image(image_path, loaded_model)
+print(f"The predicted class is: {predicted_class}")
+
+**Markdown:**
+1. **Preprocessing**:
+   - Images are resized, normalized, and prepared with a batch dimension.
+2. **Prediction**:
+   - The model outputs class probabilities, and the class with the highest probability is selected as the predicted class.
+3. **Class Names**:
+   - Ensure the `class_names` list matches the order of labels used during training.
+
+**Markdown:**
+# 13. **Develop Deployment App**: Build a web app using Streamlit or Flask for users to upload and classify images.  
+
+**Code:**
+import os
+import tensorflow as tf
+import numpy as np
+from PIL import Image
+from IPython.core.display import display, HTML
+
+# Load the trained model
+MODEL_PATH = "/kaggle/working/optimized_cnn_model.h5"  # Replace with your model path
+model = tf.keras.models.load_model(MODEL_PATH)
+
+# Define class names
+CLASS_NAMES = ['Cat', 'Dog', 'Horse']
+
+# HTML and CSS for an awesome design
+html_code = """
+<style>
+    .container {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+    }
+    .banner {
+        background-color: #4CAF50;
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    .upload-btn {
+        display: inline-block;
+        background-color: #1E88E5;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 15px 30px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .upload-btn:hover {
+        background-color: #1565C0;
+    }
+    .result {
+        background-color: #e3f2fd;
+        color: #333;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .image-preview {
+        margin: 20px auto;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 10px;
+        max-width: 300px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="container banner">
+    <h1>Welcome to the Animal Classifier</h1>
+    <p>Upload an image of a Cat, Dog, or Horse to classify it!</p>
+</div>
+"""
+display(HTML(html_code))
+
+# Define the directory where images are stored (uploaded via "Add Data")
+IMAGE_DIR = "/kaggle/input/animal/Dataset/test/horse/"  # Replace with your folder path
+
+# Display available images
+images = os.listdir(IMAGE_DIR)
+if not images:
+    print("No images found in the directory.")
+else:
+    print("Available images:")
+    for idx, image_name in enumerate(images, start=1):
+        print(f"{idx}. {image_name}")
+
+    # Ask the user to select an image by its index
+    selected_index = int(input("Enter the number of the image you want to classify: ")) - 1
+    if selected_index < 0 or selected_index >= len(images):
+        print("Invalid selection. Please run the cell again.")
+    else:
+        selected_image_path = os.path.join(IMAGE_DIR, images[selected_index])
+
+        # Display the selected image
+        selected_image = Image.open(selected_image_path)
+        display(HTML('<h3 style="text-align:center;">Selected Image</h3>'))
+        display(selected_image)
+
+        # Preprocess the image
+        def preprocess_image(image, target_size=(224, 224)):
+            """
+            Preprocess the uploaded image for model prediction.
+            Args:
+                image (PIL.Image): Input image.
+                target_size (tuple): Target size for resizing.
+            Returns:
+                np.array: Preprocessed image ready for prediction.
+            """
+            image = image.resize(target_size)  # Resize the image
+            image_array = np.array(image) / 255.0  # Normalize pixel values
+            image_array = np.expand_dims(image_array, axis=0)  # Add batch dimension
+            return image_array
+
+        preprocessed_image = preprocess_image(selected_image)
+
+        # Make a prediction
+        predictions = model.predict(preprocessed_image)
+        predicted_class_index = np.argmax(predictions[0])
+        predicted_class = CLASS_NAMES[predicted_class_index]
+        confidence_score = predictions[0][predicted_class_index] * 100  # Convert to percentage
+
+        # Display Prediction Result
+        result_html = f"""
+        <div class="container result">
+            <h3>Classification Result</h3>
+            <p><strong>Predicted Class:</strong> {predicted_class}</p>
+            <p><strong>Confidence Score:</strong> {confidence_score:.2f}%</p>
+        </div>
+        """
+        display(HTML(result_html))
+
+
+**Markdown:**
+### **Step 4: App Features**
+
+1. **Upload Image**:
+   - Users can upload an image file (JPG, JPEG, PNG).
+2. **Display Uploaded Image**:
+   - The uploaded image is displayed for confirmation.
+3. **Predict Class**:
+   - The model classifies the image as Cat, Dog, or Horse, and the result is displayed.
+
+**Markdown:**
+### **Step 5: Deployment (Optional)**
+
+To deploy the app, you can use platforms like **Streamlit Cloud**, **Heroku**, or **AWS**. For Streamlit Cloud:
+1. Push your code to a GitHub repository.
+2. Connect your repository to Streamlit Cloud.
+3. Deploy the app with one click.
+
+**Markdown:**
+# 14. **Test Deployment**: Validate the app with various image inputs to ensure functionality.  
+
+
+**Markdown:**
+# 15. **Document & Present**: Prepare a report with project details, results, and upload code to a repository (e.g., GitHub).
+
+**Code:**
